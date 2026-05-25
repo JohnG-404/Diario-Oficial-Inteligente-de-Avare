@@ -1,0 +1,33 @@
+# ============================================================
+# Diário Oficial Inteligente de Avaré — Requirements
+# ============================================================
+
+# ── Etapa 1: Coleta e scraping ──────────────────────────────
+requests==2.31.0
+beautifulsoup4==4.12.3
+pandas==2.2.2
+lxml==5.2.1                  # parser HTML alternativo ao html.parser
+
+# ── Etapa 1 (opcional): JavaScript dinâmico ─────────────────
+# playwright==1.44.0          # descomente se precisar da home page
+
+# ── Etapa 2: Extração de texto de PDF ──────────────────────
+pdfplumber==0.11.1            # extração de texto de PDFs digitais
+
+# ── Etapa 3: NLP e pré-processamento ───────────────────────
+nltk==3.8.1                   # tokenização, stopwords
+numpy==1.26.4
+
+# ── Etapas 3-4: Deep Learning ──────────────────────────────
+torch==2.3.0                  # rede neural — TextCNN / BiLSTM
+# torchvision==0.18.0         # opcional
+
+# ── Etapa 4: Avaliação e visualização ──────────────────────
+matplotlib==3.9.0
+scikit-learn==1.5.0           # métricas de avaliação (precisão, recall, F1)
+
+# ── Utilitários ─────────────────────────────────────────────
+python-dotenv==1.0.1          # variáveis de ambiente
+tqdm==4.66.4                  # barra de progresso
+ipykernel==6.29.4             # suporte a notebooks Jupyter
+jupyter==1.0.0
