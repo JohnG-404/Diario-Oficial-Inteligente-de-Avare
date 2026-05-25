@@ -8,16 +8,16 @@
 
 ## Grupo
 
-| Nome |
-|------|
-| Gabriel Bianco Sanches |
-| Gabriel Santana dos Santos |  
-| Guilherme Monteiro da Luz |  
-| Joao Gabriel Pereira Cardozo |  
-| Joao Gabriel Godoy Pereira |  
-| Lucas Nakamura Rodrigues |  
-| Lucas Vaz Barbosa |  
-| Pedro Lucas Campos |  
+| Nome | Turma |
+|------|------|
+| Gabriel Bianco Sanches | 9º termo |
+| Gabriel Santana dos Santos | 9º termo |
+| Guilherme Monteiro da Luz | 9º termo |
+| Joao Gabriel Pereira Cardozo | 9º termo |
+| Joao Gabriel Godoy Pereira | 9º termo |
+| Lucas Nakamura Rodrigues | 9º termo |
+| Lucas Vaz Barbosa | 9º termo |
+| Pedro Lucas Campos | 7º termo |
 
 ---
 
