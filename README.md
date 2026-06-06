@@ -37,7 +37,7 @@ O Diário Oficial de Avaré é publicado pela plataforma **DiOE** (P&P Colibri) 
 | Etapa | Semana | Objetivo | Status |
 |-------|--------|----------|--------|
 | **Etapa 1** | Semana 1 | Exploração do site e coleta automatizada | Concluída |
-| **Etapa 2** | Semana 2 | Extração de texto, limpeza e organização | Em andamento |
+| **Etapa 2** | Semana 2 | Extração de texto, limpeza e organização | Concluída |
 | **Etapa 3** | Semana 3 | NLP, tokenização e Dataset PyTorch | Pendente |
 | **Etapa 4** | Semana 4 | Treinamento, avaliação e apresentação | Pendente |
 
@@ -49,18 +49,27 @@ O Diário Oficial de Avaré é publicado pela plataforma **DiOE** (P&P Colibri) 
 diario-avare-nlp/
 │
 ├── data/
-│   ├── raw/                        # PDFs e HTMLs brutos baixados
-│   ├── processed/                  # Dados após limpeza e pré-processamento
-│   └── diario_avare.csv            # Lista de publicações (saída do scraper)
+│   ├── raw/                          # PDFs baixados das edições
+│   ├── processed/
+│   │   ├── base_textual.csv          # Base completa com texto limpo 
+│   │   └── amostra_rotulada.csv      # 42 publicações rotuladas manualmente 
+│   └── diario_avare.csv              # Lista de publicações com URLs 
+│
+├── docs/
+│   ├── dicionario_campos.md          # Documentação dos campos da base 
+│   └── relatorio_etapa2.md           # Relatório detalhado da Etapa 2
 │
 ├── notebooks/
+│   ├── 01_exploracao_site.ipynb      # Exploração do site 
+│   └── 02_limpeza_textos.ipynb       # Extração, limpeza e análise 
 │
 ├── src/
-│   ├── scraper.py      # Etapa 1 — Coleta automatizada
+│   ├── scraper.py                    # Coleta automatizada 
+│   ├── extract_text.py               # Extração de texto de PDF e HTML 
+│   └── preprocess.py                 # Limpeza e normalização
 │
 ├── requirements.txt
-├── README.md
-└── relatorio_final.md
+└── README.md
 ```
 
 ---
@@ -110,10 +119,6 @@ python src/extract_text.py
 # Etapa 3 — Pré-processamento
 python src/preprocess.py
 
-# Etapa 4 — Treinamento
-python src/train.py
-```
-
 ---
 
 ## Nota Importante: Bloqueio WAF
@@ -124,19 +129,46 @@ O servidor `imprensaoficialmunicipal.com.br` implementa um **Web Application Fir
 
 ---
 
-## Estrutura do CSV Principal
+## 🗃️ Bases de Dados
 
-Arquivo: `data/diario_avare.csv`
+### `data/diario_avare.csv` — gerada na Etapa 1
 
-| Campo | Tipo | Descrição | Exemplo |
-|-------|------|-----------|---------|
-| `data_publicacao` | string (ISO 8601) | Data da edição | `2026-05-14` |
-| `numero_edicao` | string | Número da edição | `2732` |
-| `titulo_ato` | string | Título do ato publicado | `Decreto 8742` |
-| `tipo_ato` | string | Categoria (rótulo de classificação) | `Decretos` |
-| `url_documento` | string | Link para a edição completa (PDF) | `https://dosp.com.br/...` |
-| `url_texto` | string | Link para o texto individual do ato | `https://dosp.com.br/...` |
-| `secretaria` | string | Órgão responsável (inferido) | `Secretaria de Educação` |
+| Campo | Descrição | Exemplo |
+|-------|-----------|---------|
+| `data_publicacao` | Data ISO 8601 | `2026-05-14` |
+| `numero_edicao` | Número da edição | `2732` |
+| `titulo_ato` | Título do ato | `Decreto 8742` |
+| `tipo_ato` | Categoria do site | `Decretos` |
+| `url_documento` | Link para o PDF | `https://dosp.com.br/...` |
+| `url_texto` | Link para HTML do ato | `https://dosp.com.br/...` |
+| `secretaria` | Órgão responsável | `Secretaria de Educação` |
+
+### `data/processed/base_textual.csv` — gerada na Etapa 2
+
+| Campo | Descrição | Exemplo |
+|-------|-----------|---------|
+| `id` | Identificador único | `DOA-2026-001` |
+| `data_publicacao` | Data ISO 8601 | `2026-05-14` |
+| `numero_edicao` | Número da edição | `2732` |
+| `tipo_ato` | Categoria | `Decretos` |
+| `titulo` | Título completo | `Decreto 8742 – Crédito Adicional Suplementar` |
+| `secretaria` | Órgão responsável | `Secretaria de Finanças` |
+| `texto` | Texto limpo extraído | `DECRETO Nº 8.742...` |
+| `url_original` | Fonte rastreável | `https://dosp.com.br/...` |
+| `rotulo` | Classe para NLP | `decreto` |
+
+### `data/processed/amostra_rotulada.csv` — gerada na Etapa 2
+
+Subconjunto de 42 registros com rótulos atribuídos manualmente, distribuídos em 6 classes:
+
+| Classe | Qtd | Descrição |
+|--------|-----|-----------|
+| `decreto` | 12 | Decretos e leis municipais |
+| `licitacao_contrato` | 8 | Pregões, contratos, atas |
+| `portaria` | 7 | Portarias administrativas gerais |
+| `ato_pessoal` | 5 | Nomeações, exonerações, férias |
+| `edital_concurso` | 5 | Abertura e resultados de concursos |
+| `contas_publicas` | 5 | Balancetes e relatórios LRF |
 
 ---
 
@@ -174,17 +206,6 @@ Arquivo: `data/diario_avare.csv`
 | Comunicados | 20 |
 | Advertências / Notificações | 188 |
 | Atos Administrativos | 80 |
-
----
-
-## Modelos Implementados (Etapa 4)
-
-| Modelo | Descrição | Parâmetros (aprox.) |
-|--------|-----------|---------------------|
-| **TextCNN** | Convolução 1D com múltiplos kernel sizes (2, 3, 4) | ~350k |
-| **BiLSTM** | LSTM bidirecional de 2 camadas | ~800k |
-
-Referência: Kim (2014) — *Convolutional Neural Networks for Sentence Classification*
 
 ---
 
