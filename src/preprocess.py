@@ -1,4 +1,3 @@
-# src/preprocess.py
 # Responsavel: limpeza e normalização dos textos
 # Etapa 2 — Extração, Limpeza e Estruturação
 

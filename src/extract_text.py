@@ -1,4 +1,3 @@
-# src/extract_text.py
 # Responsavel: extrair texto de PDFs e HTML
 # Etapa 2 — Extração, Limpeza e Estruturação
 
