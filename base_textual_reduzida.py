@@ -6,7 +6,7 @@ from src.extract_text import extrair_de_html, baixar_pdf, extrair_de_pdf
 from src.preprocess import processar
 
 # ── Configuração ──────────────────────────────────────────────────────────────
-LIMITE_LINHAS = 200      # ajuste aqui: quantos registros processar (None = todos)
+LIMITE_LINHAS = 50      # ajuste aqui: quantos registros processar (None = todos)
 PAUSA_SEGUNDOS = 1       # pausa entre requisições para não sobrecarregar o servidor
 # ─────────────────────────────────────────────────────────────────────────────
 
