@@ -118,7 +118,7 @@ python src/extract_text.py
 
 # Etapa 3 — Pré-processamento
 python src/preprocess.py
-
+```
 ---
 
 ## Nota Importante: Bloqueio WAF
