@@ -19,7 +19,7 @@ nltk==3.8.1                   # tokenização, stopwords
 numpy==1.26.4
 
 # ── Etapas 3-4: Deep Learning ──────────────────────────────
-torch==2.3.0                  # rede neural — TextCNN / BiLSTM
+torch==2.3.0                 # rede neural — TextCNN / BiLSTM
 # torchvision==0.18.0         # opcional
 
 # ── Etapa 4: Avaliação e visualização ──────────────────────
@@ -31,3 +31,6 @@ python-dotenv==1.0.1          # variáveis de ambiente
 tqdm==4.66.4                  # barra de progresso
 ipykernel==6.29.4             # suporte a notebooks Jupyter
 jupyter==1.0.0
+
+Flask==3.0.3
+seaborn==0.13.2

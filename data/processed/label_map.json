@@ -1,8 +1,5 @@
 {
-  "ato_pessoal": 0,
-  "contas_publicas": 1,
-  "decreto": 2,
-  "edital_concurso": 3,
-  "licitacao_contrato": 4,
-  "portaria": 5
+  "decreto": 0,
+  "lei": 1,
+  "portaria": 2
 }

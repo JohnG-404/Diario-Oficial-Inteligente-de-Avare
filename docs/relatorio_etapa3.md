@@ -5,134 +5,121 @@
 
 ---
 
+## Grupo
+
+| Nome | Turma |
+|------|-------|
+| Gabriel Bianco Sanches | 9º termo |
+| Gabriel Santana dos Santos | 9º termo |
+| Guilherme Monteiro da Luz | 9º termo |
+| João Gabriel Pereira Cardozo | 9º termo |
+| João Gabriel Godoy Pereira | 9º termo |
+| Lucas Nakamura Rodrigues | 9º termo |
+| Lucas Vaz Barbosa | 9º termo |
+| Pedro Lucas Campos | 7º termo |
+
+**Repositório:** https://github.com/JohnG-404/Diario-Oficial-Inteligente-de-Avare
+
+---
+
 ## 1. Resumo Executivo
 
-Nesta etapa transformamos a base textual da Etapa 2 em **tensores prontos para uma rede neural**. As decisões técnicas estão documentadas abaixo com justificativas baseadas nos dados observados na EDA.
+Nesta etapa, a base textual foi transformada em dados numéricos compatíveis com o PyTorch. O processo incluiu análise exploratória, tokenização, construção de vocabulário, codificação de rótulos e implementação do `DiarioDataset`.
+
+A versão atual utiliza **600 documentos rotulados** e balanceados entre três classes: `decreto`, `lei` e `portaria`.
 
 ---
 
-## 2. Atividade 1 — Análise Exploratória (EDA)
+## 2. Distribuição das Classes
 
-### 2.1 Distribuição das classes
+| Classe | Registros | Percentual |
+|--------|----------:|-----------:|
+| decreto | 200 | 33,3% |
+| lei | 200 | 33,3% |
+| portaria | 200 | 33,3% |
+| **Total** | **600** | **100%** |
 
-| Classe | Registros | % |
-|--------|-----------|---|
-| decreto | 12 | 28,6% |
-| licitacao_contrato | 8 | 19,0% |
-| portaria | 7 | 16,7% |
-| ato_pessoal | 5 | 11,9% |
-| edital_concurso | 5 | 11,9% |
-| contas_publicas | 5 | 11,9% |
-| **Total** | **42** | 100% |
-
-**Diagnóstico:** desbalanceamento moderado (razão máx/mín = 2,4x). Não é crítico para o tamanho da base, mas na Etapa 4 usaremos `class_weight` no `CrossEntropyLoss` para compensar.
-
-### 2.2 Comprimento dos textos (tokens após stopwords)
-
-| Estatística | Valor |
-|-------------|-------|
-| Mínimo | 31 |
-| Média | 40,5 |
-| Mediana | 40,0 |
-| Máximo | 56 |
-| Percentil 95 | 50 |
-
-**Decisão sobre MAX_LEN:** adotamos **60 tokens**, que cobre 100% da base com folga. Um valor menor (ex: 40) truncaria ~25% dos textos; um valor maior (ex: 128) desperdiçaria memória sem ganho real.
-
-### 2.3 Termos mais frequentes
-
-Os termos mais frequentes por classe confirmam que o vocabulário tem poder discriminativo:
-
-- **licitacao_contrato:** *pregão, eletrônico, cnpj, ltda, contrato, valor, objeto*
-- **contas_publicas:** *receita, despesa, orçamentária, correntes, total, lei, dezembro*
-- **edital_concurso:** *concurso, vagas, cargo, pontos, classificação, edital*
-- **decreto:** *decreta, prefeito, regulamenta, avaré, municipal*
-- **ato_pessoal:** *nomear, exonerar, cargo, comissão, servidor, portaria*
-- **portaria:** *resolve, considerando, secretário, designa, comissão*
+A distribuição balanceada evita que o modelo favoreça uma classe dominante e torna as métricas de avaliação mais confiáveis.
 
 ---
 
-## 3. Atividade 2 — Decisões de Pré-processamento NLP
+## 3. Divisão Treino/Teste
 
-### Transformações aplicadas
+A base foi dividida com `train_test_split`, mantendo estratificação por classe.
 
-| Transformação | Decisão | Justificativa |
-|---------------|---------|---------------|
-| Minúsculas | ✅ Aplicado | 'Decreto' e 'decreto' são o mesmo conceito |
-| Remove pontuação/números | ✅ Aplicado | Não carregam informação semântica para classificação |
-| Remove acentos | ❌ Não aplicado | Preserva informação do português (ex: 'saúde' ≠ 'saude') |
-| Remove stopwords | ✅ Aplicado | Reduz vocabulário sem perda semântica relevante |
-| Stemming/lematização | ❌ Não aplicado | Aumentaria complexidade sem ganho claro na base atual |
-| Mínimo de 2 caracteres | ✅ Aplicado | Elimina artefatos de extração |
+| Split | Registros | Percentual |
+|-------|----------:|-----------:|
+| Treino | 480 | 80% |
+| Teste | 120 | 20% |
 
-### Stopwords removidas
-
-Foram removidas 45 stopwords do português, incluindo preposições (*de, da, do, para*), artigos (*o, a, os, as*) e verbos auxiliares comuns (*ser, ter, foi*). A lista completa está em `src/dataset.py`.
+Cada classe possui 160 exemplos no treino e 40 exemplos no teste.
 
 ---
 
-## 4. Atividade 3 — Vocabulário
+## 4. Pré-processamento NLP
 
-### Parâmetros
+A tokenização aplicada na Etapa 3 segue as mesmas regras usadas posteriormente no `dataset.py` e no `inferencia.py`.
 
-| Parâmetro | Valor | Justificativa |
-|-----------|-------|---------------|
-| Construído com | Apenas treino (33 docs) | Evitar data leakage |
-| Frequência mínima | 2 ocorrências | Corta tokens raros que seriam ruído |
-| Tamanho final | **248 tokens** | Adequado para a escala da base |
-| `<PAD>` | índice 0 | Padding de sequências curtas |
-| `<UNK>` | índice 1 | Tokens ausentes no vocabulário |
+| Transformação | Decisão |
+|---------------|---------|
+| Converter para minúsculas | sim |
+| Remover pontuação e números isolados | sim |
+| Manter acentos | sim |
+| Remover stopwords | sim |
+| Remover tokens de 1 caractere | sim |
+| Stemming/lematização | não |
 
-### Por que construir o vocabulário só com treino?
-
-Se construirmos o vocabulário com todos os dados (treino + teste), o modelo terá índices para tokens que "nunca viu" durante o treino, mas que existem no teste — isso é **data leakage**. Na prática, isso infla artificialmente o desempenho avaliado, pois o vocabulário vaza informação do teste para o modelo.
+A manutenção dos acentos preserva características do português, enquanto a remoção de stopwords reduz o ruído para um modelo simples baseado em média de embeddings.
 
 ---
 
-## 5. Atividade 4 — Codificação dos Rótulos
+## 5. Vocabulário
 
-```
-{'ato_pessoal': 0, 'contas_publicas': 1, 'decreto': 2,
- 'edital_concurso': 3, 'licitacao_contrato': 4, 'portaria': 5}
+O vocabulário foi construído a partir dos textos de treino, evitando vazamento de dados do teste.
+
+| Parâmetro | Valor |
+|-----------|------:|
+| Frequência mínima | 2 |
+| Tokens especiais | `<PAD>=0`, `<UNK>=1` |
+| Tamanho final | 17512 tokens |
+| Fonte | textos do conjunto de treino |
+
+O uso de frequência mínima igual a 2 remove tokens raros e erros de extração, reduzindo ruído no treinamento.
+
+---
+
+## 6. Codificação dos Rótulos
+
+```python
+{'decreto': 0, 'lei': 1, 'portaria': 2}
 ```
 
-Classes ordenadas alfabeticamente para garantir reprodutibilidade. O mapeamento inverso (`id2label`) permite recuperar o nome da classe a partir do índice predito pelo modelo.
+Esse mapeamento foi salvo em `data/processed/label_map.json` e é usado tanto no treinamento quanto na inferência.
 
 ---
 
-## 6. Atividade 5 — Dataset PyTorch
+## 7. Dataset PyTorch
 
-### Resultado do teste
+A classe `DiarioDataset` converte cada texto em uma sequência de índices de tamanho fixo.
 
+```text
+Texto original
+    ↓
+tokenizar()
+    ↓
+lookup no vocab
+    ↓
+padding/truncamento para MAX_LEN
+    ↓
+tensor torch.long
 ```
-Formato X: torch.Size([8, 60])   ✅  [batch_size, MAX_LEN]
-Formato y: torch.Size([8])       ✅  [batch_size]
-Valores X: inteiros em [0, 247]  ✅  dentro do vocabulário
+
+Formato esperado do lote:
+
+```text
+X: [batch_size, MAX_LEN]
+y: [batch_size]
 ```
-
-### Divisão treino/teste
-
-| Split | Registros | % |
-|-------|-----------|---|
-| Treino | 33 | 79% |
-| Teste | 9 | 21% |
-
-Estratificação por classe (`stratify=df['rotulo_id']`) garante proporção equivalente em ambos os splits, essencial com base pequena.
-
----
-
-## 7. Atividade 6 — Comparação com PyTorch-NLP
-
-| Aspecto | Nossa implementação | PyTorch-NLP |
-|---------|--------------------|-|
-| Vocabulário | `dict {token: int}` | `WhitespaceEncoder` automático |
-| `<PAD>` / `<UNK>` | Explícitos, índices 0 e 1 | Automáticos |
-| Padding | Manual (`+ [0] * n`) | Via `encoder.encode()` |
-| Encoder de rótulos | `dict` manual | `LabelEncoder` automático |
-| Transparência | Total — cada passo visível | Caixa cinza |
-| Flexibilidade | Alta | Limitada à API da lib |
-
-**Conclusão:** a implementação manual é superior para fins didáticos — cada decisão é explícita e compreensível. Para projetos em produção, ferramentas como `PyTorch-NLP` ou `HuggingFace Tokenizers` economizam tempo com suporte a vocabulários maiores e tokenizadores mais sofisticados (BPE, WordPiece).
 
 ---
 
@@ -140,23 +127,24 @@ Estratificação por classe (`stratify=df['rotulo_id']`) garante proporção equ
 
 | Arquivo | Descrição |
 |---------|-----------|
-| `data/processed/vocab.json` | Vocabulário: 248 tokens (token → índice) |
-| `data/processed/label_map.json` | Mapeamento de rótulos: 6 classes (rótulo → inteiro) |
-| `src/dataset.py` | Classe `DiarioDataset` + `carregar_datasets()` |
-| `notebooks/03_analise_exploratoria.ipynb` | EDA completa com gráficos |
-| `docs/distribuicao_classes.png` | Gráfico de distribuição das classes |
-| `docs/comprimento_textos.png` | Histograma e boxplot do comprimento |
-| `docs/termos_por_classe.png` | Top 10 tokens por classe |
+| `data/processed/amostra_rotulada.csv` | 600 registros balanceados |
+| `data/processed/vocab.json` | vocabulário com 17512 tokens |
+| `data/processed/label_map.json` | mapeamento das 3 classes |
+| `src/dataset.py` | Dataset PyTorch e DataLoaders |
+| `notebooks/03_analise_exploratoria.ipynb` | análise exploratória atualizada |
+| `docs/distribuicao_classes.png` | distribuição das classes |
+| `docs/termos_por_classe.png` | termos frequentes por classe |
 
 ---
 
-## 9. Próximos Passos (Etapa 4)
+## 9. Justificativa Técnica
 
-- Usar `treino_loader` e `teste_loader` em `src/train.py`
-- Treinar modelo `TextCNN` (kernel sizes 2, 3, 4 — rápido e eficaz para textos curtos)
-- Avaliar com acurácia, F1-score por classe e matriz de confusão
-- Investigar se as classes com menos exemplos (`ato_pessoal`, `edital_concurso`, `contas_publicas`) se beneficiam de `class_weight`
+A versão inicial com seis classes apresentava baixo volume e desbalanceamento em categorias como `edital_concurso`, `portaria` e `licitacao_contrato`. Para fins didáticos e para garantir um treinamento neural mais confiável, a base foi reformulada para três classes com forte representatividade no corpus.
+
+Essa decisão preserva o objetivo da disciplina: demonstrar a construção de uma pipeline completa de classificação textual com redes neurais.
 
 ---
 
-*Relatório da Etapa 3 — Semana 3*
+## 10. Próximos Passos
+
+A Etapa 4 utiliza os DataLoaders gerados aqui para treinar o modelo `EmbeddingAvg + MLP`, avaliar as métricas no conjunto de teste e disponibilizar o classificador via interface Flask.
